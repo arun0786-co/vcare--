@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { ENTRY_STATUSES } from "@/domain/queue/types";
-import { canTransition } from "@/domain/queue/transitions";
+import { assertTransition, canTransition } from "@/domain/queue/transitions";
 
 const ALLOWED = new Set([
   "BOOKED->CHECKED_IN",
@@ -22,4 +22,16 @@ describe("canTransition", () => {
       });
     }
   }
+});
+
+describe("assertTransition", () => {
+  test("passes for an allowed change", () => {
+    expect(() => assertTransition("BOOKED", "CHECKED_IN")).not.toThrow();
+  });
+
+  test("throws INVALID_TRANSITION otherwise", () => {
+    expect(() => assertTransition("COMPLETED", "CHECKED_IN")).toThrow(
+      expect.objectContaining({ code: "INVALID_TRANSITION" }),
+    );
+  });
 });

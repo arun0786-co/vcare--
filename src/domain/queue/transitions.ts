@@ -1,3 +1,4 @@
+import { QueueError } from "../errors";
 import type { EntryStatus } from "./types";
 
 const NEXT_STATUSES: Record<EntryStatus, readonly EntryStatus[]> = {
@@ -11,4 +12,10 @@ const NEXT_STATUSES: Record<EntryStatus, readonly EntryStatus[]> = {
 
 export function canTransition(from: EntryStatus, to: EntryStatus): boolean {
   return NEXT_STATUSES[from].includes(to);
+}
+
+export function assertTransition(from: EntryStatus, to: EntryStatus): void {
+  if (!canTransition(from, to)) {
+    throw new QueueError("INVALID_TRANSITION", `Cannot change a ${from} entry to ${to}`);
+  }
 }
