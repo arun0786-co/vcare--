@@ -13,3 +13,12 @@ export function orderKey(e: QueueEntryView, graceMinutes: number): Date {
   }
   return e.scheduledAt;
 }
+
+export function compareEntries(a: QueueEntryView, b: QueueEntryView, graceMinutes: number): number {
+  if (a.priorityAt && b.priorityAt) return a.priorityAt.getTime() - b.priorityAt.getTime() || a.ticketNo - b.ticketNo;
+  if (a.priorityAt) return -1;
+  if (b.priorityAt) return 1;
+  return (
+    orderKey(a, graceMinutes).getTime() - orderKey(b, graceMinutes).getTime() || a.ticketNo - b.ticketNo
+  );
+}
