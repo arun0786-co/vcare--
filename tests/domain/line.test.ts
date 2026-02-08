@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { ENTRY_STATUSES } from "@/domain/queue/types";
-import { callableQueue, hasLostSlot } from "@/domain/queue/line";
+import { callableQueue, hasLostSlot, projectedLine } from "@/domain/queue/line";
 import { booking, entry } from "../support/entries";
 import { at } from "../support/time";
 
@@ -28,5 +28,22 @@ describe("hasLostSlot", () => {
   test("never lost if not passed over or already checked in", () => {
     expect(hasLostSlot(booking({ scheduledAt: at("10:20") }), at("12:00"), 10)).toBe(false);
     expect(hasLostSlot({ ...passed, status: "CHECKED_IN", checkedInAt: at("10:50") }, at("12:00"), 10)).toBe(false);
+  });
+});
+
+describe("projectedLine", () => {
+  test("checked-in and absent bookings interleave by key", () => {
+    const a = entry({ id: "a", checkedInAt: at("10:05") });
+    const b = booking({ id: "b", scheduledAt: at("10:20") });
+    const c = entry({ id: "c", checkedInAt: at("10:22") });
+    const cur = entry({ id: "cur", status: "IN_CONSULTATION", checkedInAt: at("09:50") });
+    const done = entry({ id: "done", status: "COMPLETED", checkedInAt: at("09:40") });
+    expect(projectedLine([c, b, a, cur, done], at("10:25"), 10).map((e) => e.id)).toEqual(["a", "b", "c"]);
+  });
+
+  test("keeps a passed-over booking until its grace ends", () => {
+    const passed = booking({ id: "b", scheduledAt: at("10:20"), passedAt: at("10:25") });
+    expect(projectedLine([passed], at("10:34"), 10).map((e) => e.id)).toEqual(["b"]);
+    expect(projectedLine([passed], at("10:35"), 10)).toEqual([]);
   });
 });

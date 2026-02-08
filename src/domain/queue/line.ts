@@ -18,3 +18,13 @@ export function callableQueue(entries: QueueEntryView[], graceMinutes: number): 
 export function hasLostSlot(e: QueueEntryView, now: Date, graceMinutes: number): boolean {
   return e.status === "BOOKED" && e.passedAt !== null && now >= addMinutes(e.passedAt, graceMinutes);
 }
+
+// Everyone expected to be seen, in order: waiting patients plus bookings that still hold their place.
+export function projectedLine(entries: QueueEntryView[], now: Date, graceMinutes: number): QueueEntryView[] {
+  return sorted(
+    entries.filter(
+      (e) => e.status === "CHECKED_IN" || (e.status === "BOOKED" && !hasLostSlot(e, now, graceMinutes)),
+    ),
+    graceMinutes,
+  );
+}
