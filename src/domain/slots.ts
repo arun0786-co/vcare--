@@ -16,3 +16,7 @@ export function freeSlots(grid: SlotGrid): Date[] {
   }
   return slots;
 }
+
+export function isFreeSlot(grid: SlotGrid, candidate: Date): boolean {
+  return freeSlots(grid).some((slot) => slot.getTime() === candidate.getTime());
+}
