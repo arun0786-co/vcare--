@@ -1,5 +1,5 @@
 import { addMinutes } from "../clock";
-import type { Eta, QueueEntryView } from "../queue/types";
+import { DEFAULTS, type Eta, type QueueEntryView } from "../queue/types";
 
 export interface AlertHistory {
   leaveNowEarlyAt: Date | null;
@@ -42,5 +42,25 @@ export function planLeaveNow(
     expectedAt: eta.expectedAt,
     earlyAt: eta.earlyAt,
     leaveAt: at,
+  };
+}
+
+// A follow-up only when things got clearly worse after we told someone to leave.
+export function planDelay(
+  e: QueueEntryView,
+  eta: Eta,
+  history: AlertHistory,
+  bufferMinutes: number,
+): PlannedAlert | null {
+  if (!alertable(e) || !history.leaveNowEarlyAt || !history.lastAlertEarlyAt) return null;
+  if (history.delayCount >= DEFAULTS.maxDelayAlerts) return null;
+  if (eta.earlyAt < addMinutes(history.lastAlertEarlyAt, DEFAULTS.delayThresholdMinutes)) return null;
+  return {
+    entryId: e.id,
+    kind: "DELAY",
+    dedupeKey: `DELAY:${e.id}:${history.delayCount + 1}`,
+    expectedAt: eta.expectedAt,
+    earlyAt: eta.earlyAt,
+    leaveAt: leaveAt(eta, e.travelMinutes, bufferMinutes),
   };
 }
