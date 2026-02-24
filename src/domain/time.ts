@@ -4,3 +4,8 @@ export function formatClinicTime(d: Date, timeZone: string): string {
     .format(d)
     .replace(/\s/g, " ");
 }
+
+// YYYY-MM-DD in the clinic's timezone (en-CA formats dates that way).
+export function clinicDateString(d: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+}
