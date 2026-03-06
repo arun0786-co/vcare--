@@ -45,6 +45,27 @@ export function planLeaveNow(
   };
 }
 
+export function planAlerts(input: {
+  entries: QueueEntryView[];
+  etas: Eta[];
+  history: Map<string, AlertHistory>;
+  now: Date;
+  bufferMinutes: number;
+}): PlannedAlert[] {
+  const etaById = new Map(input.etas.map((eta) => [eta.entryId, eta]));
+  const plans: PlannedAlert[] = [];
+  for (const e of input.entries) {
+    const eta = etaById.get(e.id);
+    if (!eta) continue;
+    const history = input.history.get(e.id) ?? { leaveNowEarlyAt: null, lastAlertEarlyAt: null, delayCount: 0 };
+    const plan =
+      planLeaveNow(e, eta, history, input.now, input.bufferMinutes) ??
+      planDelay(e, eta, history, input.bufferMinutes);
+    if (plan) plans.push(plan);
+  }
+  return plans;
+}
+
 // A follow-up only when things got clearly worse after we told someone to leave.
 export function planDelay(
   e: QueueEntryView,

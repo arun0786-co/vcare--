@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { planDelay, planLeaveNow, type AlertHistory } from "@/domain/notify/plan";
+import { planAlerts, planDelay, planLeaveNow, type AlertHistory } from "@/domain/notify/plan";
 import type { Eta } from "@/domain/queue/types";
 import { booking } from "../support/entries";
 import { at } from "../support/time";
@@ -72,5 +72,21 @@ describe("planDelay", () => {
 
   test("not once the patient has checked in", () => {
     expect(planDelay({ ...b, status: "CHECKED_IN" }, eta("12:00"), afterLeaveNow, 10)).toBeNull();
+  });
+});
+
+describe("planAlerts", () => {
+  const c = booking({ id: "c", scheduledAt: at("11:15"), travelMinutes: 10 });
+  const noEta = booking({ id: "n", scheduledAt: at("11:30"), travelMinutes: 10 });
+  const etas: Eta[] = [eta("11:20"), { entryId: "c", position: 2, earlyAt: at("11:15"), expectedAt: at("11:28") }];
+
+  test("plans each entry with an estimate", () => {
+    const history = new Map([["b", { leaveNowEarlyAt: at("11:00"), lastAlertEarlyAt: at("11:00"), delayCount: 0 }]]);
+    const plans = planAlerts({ entries: [b, c, noEta], etas, history, now: at("10:55"), bufferMinutes: 10 });
+    expect(plans.map((p) => p.dedupeKey)).toEqual(["DELAY:b:1", "LEAVE_NOW:c"]);
+  });
+
+  test("nothing due yet", () => {
+    expect(planAlerts({ entries: [b, c], etas, history: new Map(), now: at("10:00"), bufferMinutes: 10 })).toEqual([]);
   });
 });
