@@ -7,6 +7,8 @@ export default defineConfig({
     alias: { "@": path.resolve(__dirname, "src") },
   },
   test: {
+    // Integration tests share one database, so files run one at a time.
+    fileParallelism: false,
     projects: [
       {
         extends: true,
@@ -21,7 +23,6 @@ export default defineConfig({
           name: "integration",
           include: ["tests/server/**/*.test.ts"],
           globalSetup: ["tests/server/global-setup.ts"],
-          fileParallelism: false,
           env: {
             DATABASE_URL: TEST_DATABASE_URL,
             APP_BASE_URL: "http://localhost:3000",
