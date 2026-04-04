@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { leaveNowMessage, linkMessage } from "@/domain/notify/messages";
+import { delayMessage, leaveNowMessage, linkMessage } from "@/domain/notify/messages";
 
 describe("linkMessage", () => {
   test("booking with a slot", () => {
@@ -18,5 +18,11 @@ describe("linkMessage", () => {
 test("leaveNowMessage", () => {
   expect(leaveNowMessage({ clinicName: "Demo Clinic", expectedTime: "11:20 AM", url: "https://x/q/abc" })).toBe(
     "VCare: time to leave for Demo Clinic. Your turn is expected around 11:20 AM. Live status: https://x/q/abc",
+  );
+});
+
+test("delayMessage", () => {
+  expect(delayMessage({ doctorName: "Dr Meera Nair", expectedTime: "11:50 AM", url: "https://x/q/abc" })).toBe(
+    "VCare: Dr Meera Nair is running behind. Your turn is now expected around 11:50 AM. Live status: https://x/q/abc",
   );
 });
