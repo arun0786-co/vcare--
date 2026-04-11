@@ -1,6 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/server/db/client";
-import { clinics, doctorSchedules, doctorSessions, doctors, staffUsers } from "@/server/db/schema";
+import { clinics, doctorSchedules, doctorSessions, doctors, queueEntries, staffUsers } from "@/server/db/schema";
+import type { EntryRow } from "@/server/queue/entries";
 
 export async function resetDb(): Promise<void> {
   await db.execute(sql`
@@ -34,4 +36,23 @@ export async function createSession(doctorId: string, startsAt: Date, endsAt: Da
     .values({ doctorId, clinicId: doctor.clinicId, date, startsAt, endsAt })
     .returning();
   return session.id;
+}
+
+// Inserts an entry directly, bypassing the queue rules, for read-side tests.
+export async function insertRawEntry(
+  sessionId: string,
+  overrides: Partial<typeof queueEntries.$inferInsert> & { ticketNo: number },
+): Promise<EntryRow> {
+  const [row] = await db
+    .insert(queueEntries)
+    .values({
+      sessionId,
+      channel: "WALK_IN",
+      status: "CHECKED_IN",
+      patientName: `Patient ${overrides.ticketNo}`,
+      publicToken: randomUUID(),
+      ...overrides,
+    })
+    .returning();
+  return row;
 }

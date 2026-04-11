@@ -1,4 +1,6 @@
+import { asc, eq } from "drizzle-orm";
 import type { QueueEntryView } from "@/domain/queue/types";
+import type { DbOrTx } from "../db/client";
 import { queueEntries } from "../db/schema";
 
 export type EntryRow = typeof queueEntries.$inferSelect;
@@ -18,4 +20,8 @@ export function toView(row: EntryRow): QueueEntryView {
     travelMinutes: row.travelMinutes,
     hasPhone: row.patientPhone !== null,
   };
+}
+
+export async function loadEntries(db: DbOrTx, sessionId: string): Promise<EntryRow[]> {
+  return db.select().from(queueEntries).where(eq(queueEntries.sessionId, sessionId)).orderBy(asc(queueEntries.ticketNo));
 }
