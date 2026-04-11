@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { db } from "@/server/db/client";
-import { loadEntries, toView, type EntryRow } from "@/server/queue/entries";
+import { findEntry, loadEntries, toView, type EntryRow } from "@/server/queue/entries";
 import { at } from "../support/time";
 import { createSession, insertRawEntry, resetDb, seedClinic } from "./helpers";
 
@@ -64,5 +64,14 @@ describe("with a database", () => {
     await insertRawEntry(sessionId, { ticketNo: 1 });
     await insertRawEntry(otherSessionId, { ticketNo: 1 });
     expect((await loadEntries(db, sessionId)).map((e) => e.ticketNo)).toEqual([1, 2]);
+  });
+
+  test("findEntry only finds entries of the given session", async () => {
+    const mine = await insertRawEntry(sessionId, { ticketNo: 1 });
+    const theirs = await insertRawEntry(otherSessionId, { ticketNo: 1 });
+    expect((await findEntry(db, sessionId, mine.id)).id).toBe(mine.id);
+    for (const id of [theirs.id, "not-a-uuid"]) {
+      await expect(findEntry(db, sessionId, id)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    }
   });
 });
