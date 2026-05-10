@@ -5,6 +5,7 @@ import { checkIn } from "./check-in";
 import { completeCurrent } from "./complete-current";
 import { markNoShow } from "./mark-no-show";
 import { next } from "./next";
+import { prioritize } from "./prioritize";
 import { recheckIn } from "./recheck-in";
 import type { HandlerRegistry } from "./types";
 
@@ -17,4 +18,5 @@ export const HANDLERS: HandlerRegistry = {
   MARK_NO_SHOW: markNoShow,
   RECHECK_IN: recheckIn,
   CANCEL: cancel,
+  PRIORITIZE: prioritize,
 };
