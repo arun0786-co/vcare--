@@ -4,6 +4,7 @@ import { checkIn } from "./check-in";
 import { completeCurrent } from "./complete-current";
 import { markNoShow } from "./mark-no-show";
 import { next } from "./next";
+import { recheckIn } from "./recheck-in";
 import type { HandlerRegistry } from "./types";
 
 export const HANDLERS: HandlerRegistry = {
@@ -13,4 +14,5 @@ export const HANDLERS: HandlerRegistry = {
   NEXT: next,
   COMPLETE_CURRENT: completeCurrent,
   MARK_NO_SHOW: markNoShow,
+  RECHECK_IN: recheckIn,
 };
