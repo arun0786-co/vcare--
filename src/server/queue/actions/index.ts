@@ -1,5 +1,6 @@
 import { addPhoneBooking } from "./add-phone-booking";
 import { addWalkIn } from "./add-walk-in";
+import { cancel } from "./cancel";
 import { checkIn } from "./check-in";
 import { completeCurrent } from "./complete-current";
 import { markNoShow } from "./mark-no-show";
@@ -15,4 +16,5 @@ export const HANDLERS: HandlerRegistry = {
   COMPLETE_CURRENT: completeCurrent,
   MARK_NO_SHOW: markNoShow,
   RECHECK_IN: recheckIn,
+  CANCEL: cancel,
 };
