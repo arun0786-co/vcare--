@@ -20,5 +20,5 @@ test("another clinic's staff cannot act on the session", async () => {
       action: { type: "DOCTOR_ARRIVED" },
       now: at("10:00"),
     }),
-  ).rejects.toMatchObject({ code: expect.stringMatching(/NOT_FOUND|VALIDATION/) });
+  ).rejects.toMatchObject({ code: "NOT_FOUND" });
 });

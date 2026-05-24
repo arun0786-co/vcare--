@@ -3,6 +3,7 @@ import { addWalkIn } from "./add-walk-in";
 import { cancel } from "./cancel";
 import { checkIn } from "./check-in";
 import { completeCurrent } from "./complete-current";
+import { doctorArrived } from "./doctor-arrived";
 import { doctorLate } from "./doctor-late";
 import { markNoShow } from "./mark-no-show";
 import { next } from "./next";
@@ -21,4 +22,5 @@ export const HANDLERS: HandlerRegistry = {
   CANCEL: cancel,
   PRIORITIZE: prioritize,
   DOCTOR_LATE: doctorLate,
+  DOCTOR_ARRIVED: doctorArrived,
 };

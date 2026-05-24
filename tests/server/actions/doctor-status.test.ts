@@ -28,3 +28,11 @@ describe("DOCTOR_LATE", () => {
     });
   });
 });
+
+describe("DOCTOR_ARRIVED", () => {
+  test("records arrival once", async () => {
+    await s.act({ type: "DOCTOR_ARRIVED" }, at("10:12"));
+    await s.act({ type: "DOCTOR_ARRIVED" }, at("10:20"));
+    expect((await session()).doctorArrivedAt).toEqual(at("10:12"));
+  });
+});
