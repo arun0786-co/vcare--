@@ -1,0 +1,30 @@
+import { eq } from "drizzle-orm";
+import { beforeEach, describe, expect, test } from "vitest";
+import { db } from "@/server/db/client";
+import { doctorSessions } from "@/server/db/schema";
+import { at } from "../../support/time";
+import { setupSession } from "../fixtures";
+
+let s: Awaited<ReturnType<typeof setupSession>>;
+const session = async () => (await db.select().from(doctorSessions).where(eq(doctorSessions.id, s.sessionId)))[0];
+
+beforeEach(async () => {
+  s = await setupSession();
+});
+
+describe("DOCTOR_LATE", () => {
+  test("records the expected start", async () => {
+    await s.act({ type: "DOCTOR_LATE", expectedStartAt: at("10:45").toISOString() }, at("09:50"));
+    expect((await session()).expectedStartAt).toEqual(at("10:45"));
+  });
+
+  test("must be in the future and before the doctor arrives", async () => {
+    await expect(s.act({ type: "DOCTOR_LATE", expectedStartAt: at("09:30").toISOString() }, at("09:50"))).rejects.toMatchObject({
+      code: "VALIDATION",
+    });
+    await db.update(doctorSessions).set({ doctorArrivedAt: at("10:00") }).where(eq(doctorSessions.id, s.sessionId));
+    await expect(s.act({ type: "DOCTOR_LATE", expectedStartAt: at("10:45").toISOString() }, at("10:05"))).rejects.toMatchObject({
+      code: "VALIDATION",
+    });
+  });
+});

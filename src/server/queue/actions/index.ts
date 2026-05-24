@@ -3,6 +3,7 @@ import { addWalkIn } from "./add-walk-in";
 import { cancel } from "./cancel";
 import { checkIn } from "./check-in";
 import { completeCurrent } from "./complete-current";
+import { doctorLate } from "./doctor-late";
 import { markNoShow } from "./mark-no-show";
 import { next } from "./next";
 import { prioritize } from "./prioritize";
@@ -19,4 +20,5 @@ export const HANDLERS: HandlerRegistry = {
   RECHECK_IN: recheckIn,
   CANCEL: cancel,
   PRIORITIZE: prioritize,
+  DOCTOR_LATE: doctorLate,
 };
