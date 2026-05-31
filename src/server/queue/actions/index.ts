@@ -5,6 +5,7 @@ import { checkIn } from "./check-in";
 import { completeCurrent } from "./complete-current";
 import { doctorArrived } from "./doctor-arrived";
 import { doctorLate } from "./doctor-late";
+import { endBreak } from "./end-break";
 import { markNoShow } from "./mark-no-show";
 import { next } from "./next";
 import { prioritize } from "./prioritize";
@@ -25,4 +26,5 @@ export const HANDLERS: HandlerRegistry = {
   DOCTOR_LATE: doctorLate,
   DOCTOR_ARRIVED: doctorArrived,
   START_BREAK: startBreak,
+  END_BREAK: endBreak,
 };

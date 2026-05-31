@@ -54,3 +54,11 @@ describe("START_BREAK", () => {
     }
   });
 });
+
+describe("END_BREAK", () => {
+  test("clears the break", async () => {
+    await s.act({ type: "START_BREAK", until: at("11:30").toISOString(), reason: "tea" }, at("11:10"));
+    await s.act({ type: "END_BREAK" }, at("11:20"));
+    expect(await session()).toMatchObject({ pausedUntil: null, pauseReason: null });
+  });
+});
