@@ -10,6 +10,7 @@ import { markNoShow } from "./mark-no-show";
 import { next } from "./next";
 import { prioritize } from "./prioritize";
 import { recheckIn } from "./recheck-in";
+import { setNote } from "./set-note";
 import { startBreak } from "./start-break";
 import type { HandlerRegistry } from "./types";
 
@@ -27,4 +28,5 @@ export const HANDLERS: HandlerRegistry = {
   DOCTOR_ARRIVED: doctorArrived,
   START_BREAK: startBreak,
   END_BREAK: endBreak,
+  SET_NOTE: setNote,
 };

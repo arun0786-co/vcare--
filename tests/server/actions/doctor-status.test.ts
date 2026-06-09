@@ -62,3 +62,12 @@ describe("END_BREAK", () => {
     expect(await session()).toMatchObject({ pausedUntil: null, pauseReason: null });
   });
 });
+
+describe("SET_NOTE", () => {
+  test("sets and clears the public note", async () => {
+    await s.act({ type: "SET_NOTE", note: "  Doctor called to an emergency  " }, at("11:00"));
+    expect((await session()).publicNote).toBe("Doctor called to an emergency");
+    await s.act({ type: "SET_NOTE", note: "" }, at("11:30"));
+    expect((await session()).publicNote).toBeNull();
+  });
+});
