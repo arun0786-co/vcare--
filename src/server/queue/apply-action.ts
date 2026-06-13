@@ -15,7 +15,6 @@ export async function applyAction(
 ): Promise<ActionResult> {
   const action = parseStaffAction(args.action);
   const handler = HANDLERS[action.type];
-  if (!handler) throw new QueueError("VALIDATION", "Unsupported action");
 
   return db.transaction(async (tx) => {
     const session = await lockSession(tx, args.sessionId, args.clinicId);

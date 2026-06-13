@@ -11,4 +11,4 @@ export interface ActionHandler<T extends StaffActionType> {
   run(ctx: ActionContext, action: Extract<StaffAction, { type: T }>): Promise<ActionResult | void>;
 }
 
-export type HandlerRegistry = { [T in StaffActionType]?: ActionHandler<T> };
+export type HandlerRegistry = { [T in StaffActionType]: ActionHandler<T> };
