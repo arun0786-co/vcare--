@@ -2,6 +2,7 @@ import { addPhoneBooking } from "./add-phone-booking";
 import { addWalkIn } from "./add-walk-in";
 import { cancel } from "./cancel";
 import { checkIn } from "./check-in";
+import { closeSession } from "./close-session";
 import { completeCurrent } from "./complete-current";
 import { doctorArrived } from "./doctor-arrived";
 import { doctorLate } from "./doctor-late";
@@ -29,4 +30,5 @@ export const HANDLERS: HandlerRegistry = {
   START_BREAK: startBreak,
   END_BREAK: endBreak,
   SET_NOTE: setNote,
+  CLOSE_SESSION: closeSession,
 };
