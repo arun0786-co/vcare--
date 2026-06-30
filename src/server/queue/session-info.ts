@@ -17,6 +17,8 @@ export interface SessionInfo {
   slotMinutes: number;
   defaultConsultMinutes: number;
   timing: SessionTiming;
+  pauseReason: string | null;
+  publicNote: string | null;
   nextTicket: number;
 }
 
@@ -53,6 +55,8 @@ export async function loadSession(db: DbOrTx, sessionId: string, opts: { forUpda
       pausedUntil: session.pausedUntil,
       closedAt: session.closedAt,
     },
+    pauseReason: session.pauseReason,
+    publicNote: session.publicNote,
     nextTicket: session.nextTicket,
   };
 }
