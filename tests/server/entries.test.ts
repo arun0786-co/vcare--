@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { db } from "@/server/db/client";
-import { findEntry, loadEntries, toView, type EntryRow } from "@/server/queue/entries";
+import { findEntry, findEntryByToken, loadEntries, toView, type EntryRow } from "@/server/queue/entries";
 import { at } from "../support/time";
 import { createSession, insertRawEntry, resetDb, seedClinic } from "./helpers";
 
@@ -72,6 +72,14 @@ describe("with a database", () => {
     expect((await findEntry(db, sessionId, mine.id)).id).toBe(mine.id);
     for (const id of [theirs.id, "not-a-uuid"]) {
       await expect(findEntry(db, sessionId, id)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    }
+  });
+
+  test("findEntryByToken finds by the patient link token", async () => {
+    const e = await insertRawEntry(sessionId, { ticketNo: 1, publicToken: "A".repeat(32) });
+    expect((await findEntryByToken(db, "A".repeat(32))).id).toBe(e.id);
+    for (const token of ["B".repeat(32), "short", "A".repeat(31) + "!"]) {
+      await expect(findEntryByToken(db, token)).rejects.toMatchObject({ code: "NOT_FOUND" });
     }
   });
 });

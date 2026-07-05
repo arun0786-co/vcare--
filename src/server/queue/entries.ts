@@ -37,3 +37,12 @@ export async function findEntry(db: DbOrTx, sessionId: string, entryId: string):
   if (!row) throw new QueueError("NOT_FOUND", "Patient not found in this session");
   return row;
 }
+
+const TOKEN = /^[A-Za-z0-9_-]{32}$/;
+
+export async function findEntryByToken(db: DbOrTx, token: string): Promise<EntryRow> {
+  if (!TOKEN.test(token)) throw new QueueError("NOT_FOUND", "This link is not valid");
+  const [row] = await db.select().from(queueEntries).where(eq(queueEntries.publicToken, token));
+  if (!row) throw new QueueError("NOT_FOUND", "This link is not valid");
+  return row;
+}
