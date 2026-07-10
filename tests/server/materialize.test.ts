@@ -2,7 +2,7 @@ import { beforeEach, expect, test } from "vitest";
 import { asc } from "drizzle-orm";
 import { db } from "@/server/db/client";
 import { doctorSessions } from "@/server/db/schema";
-import { ensureSessions } from "@/server/sessions/materialize";
+import { ensureClinicSessions, ensureSessions } from "@/server/sessions/materialize";
 import { resetDb, seedClinic } from "./helpers";
 
 let doctorId: string;
@@ -26,4 +26,14 @@ test("running again creates nothing new", async () => {
   await ensureSessions(db, doctorId, "2026-10-20", 14);
   const rows = await db.select().from(doctorSessions);
   expect(rows.map((r) => r.date).sort()).toEqual(["2026-10-26", "2026-10-26", "2026-11-02", "2026-11-02"]);
+});
+
+test("ensureClinicSessions covers every doctor of the clinic and no other", async () => {
+  const other = await seedClinic("other");
+  const { clinicId } = await seedClinic("third");
+  await ensureClinicSessions(db, clinicId, "2026-10-26", 1);
+  const rows = await db.select().from(doctorSessions);
+  expect(rows.every((r) => r.clinicId === clinicId)).toBe(true);
+  expect(rows).toHaveLength(2);
+  expect(other).toBeDefined();
 });
