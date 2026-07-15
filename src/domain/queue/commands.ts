@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { QueueError } from "../errors";
+import { parseOrThrow } from "../parse";
 
 const entryId = z.uuid({ error: "Unknown entry" });
 const name = z.string().trim().min(1, { error: "Enter the patient's name" }).max(80, { error: "Name is too long" });
@@ -33,7 +33,5 @@ export type StaffAction = z.infer<typeof staffActionSchema>;
 export type StaffActionType = StaffAction["type"];
 
 export function parseStaffAction(input: unknown): StaffAction {
-  const result = staffActionSchema.safeParse(input);
-  if (!result.success) throw new QueueError("VALIDATION", result.error.issues[0]?.message ?? "Invalid action");
-  return result.data;
+  return parseOrThrow(staffActionSchema, input, "Invalid action");
 }
