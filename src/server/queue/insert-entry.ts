@@ -1,9 +1,10 @@
 import { randomBytes } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
+import { validTravelMinutes } from "@/domain/booking/travel";
 import { QueueError } from "@/domain/errors";
 import { linkMessage } from "@/domain/notify/messages";
 import { normalizeIndianMobile } from "@/domain/phone";
-import { DEFAULTS, type Channel } from "@/domain/queue/types";
+import type { Channel } from "@/domain/queue/types";
 import { formatClinicTime } from "@/domain/time";
 import { doctorSessions, queueEntries } from "../db/schema";
 import { enqueueNotification } from "../notify/outbox";
@@ -31,19 +32,11 @@ function validPhone(input: NewEntry): string | null {
   return phone;
 }
 
-function validTravel(minutes: number | null | undefined): number | null {
-  if (minutes === null || minutes === undefined) return null;
-  if (!(DEFAULTS.travelOptions as readonly number[]).includes(minutes)) {
-    throw new QueueError("VALIDATION", "Pick a travel time from the list");
-  }
-  return minutes;
-}
-
 // Adds a patient to the session: walk-ins are checked in straight away, bookings wait for their slot.
 export async function insertEntry(ctx: ActionContext, input: NewEntry): Promise<EntryRow> {
   const isWalkIn = input.channel === "WALK_IN";
   const phone = validPhone(input);
-  const travelMinutes = validTravel(input.travelMinutes);
+  const travelMinutes = validTravelMinutes(input.travelMinutes);
   if (isWalkIn && input.scheduledAt) throw new QueueError("VALIDATION", "Walk-ins do not have a slot");
   if (!isWalkIn && !input.scheduledAt) throw new QueueError("VALIDATION", "Pick a slot for the booking");
   if (input.scheduledAt) await assertSlotFree(ctx, input.scheduledAt);
