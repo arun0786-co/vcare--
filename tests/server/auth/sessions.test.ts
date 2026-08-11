@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from "vitest";
-import { createStaffSession, getStaffFromToken } from "@/server/auth/sessions";
+import { createStaffSession, destroyStaffSession, getStaffFromToken } from "@/server/auth/sessions";
 import { db } from "@/server/db/client";
 import { staffSessions } from "@/server/db/schema";
 import { at } from "../../support/time";
@@ -35,4 +35,11 @@ test("expires after 14 days", async () => {
   const token = await createStaffSession(db, seeded.staffId, at("09:00", "2026-10-01"));
   expect(await getStaffFromToken(db, token, at("08:59", "2026-10-15"))).not.toBeNull();
   expect(await getStaffFromToken(db, token, at("09:00", "2026-10-15"))).toBeNull();
+});
+
+test("unknown token and logged-out session resolve to nobody", async () => {
+  expect(await getStaffFromToken(db, "nope", at("09:00"))).toBeNull();
+  const token = await createStaffSession(db, seeded.staffId, at("09:00"));
+  await destroyStaffSession(db, token);
+  expect(await getStaffFromToken(db, token, at("09:01"))).toBeNull();
 });

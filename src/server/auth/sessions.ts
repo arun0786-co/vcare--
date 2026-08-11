@@ -35,3 +35,7 @@ export async function getStaffFromToken(db: Db, token: string, now: Date): Promi
     .where(and(eq(staffSessions.id, hashToken(token)), gt(staffSessions.expiresAt, now)));
   return row ?? null;
 }
+
+export async function destroyStaffSession(db: Db, token: string): Promise<void> {
+  await db.delete(staffSessions).where(eq(staffSessions.id, hashToken(token)));
+}
