@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
 import { beforeEach, expect, test } from "vitest";
 import { POST as login } from "@/app/api/auth/login/route";
+import { POST as logout } from "@/app/api/auth/logout/route";
 import { hashPassword } from "@/server/auth/password";
+import { getStaffFromToken } from "@/server/auth/sessions";
 import { db } from "@/server/db/client";
 import { staffUsers } from "@/server/db/schema";
 import { resetDb, seedClinic } from "../helpers";
@@ -35,4 +37,13 @@ test("bad credentials get one 401 message and no cookie", async () => {
     expect(await res.json()).toEqual({ error: { code: "UNAUTHORIZED", message: "Wrong email or password" } });
     expect(res.headers.get("set-cookie")).toBeNull();
   }
+});
+
+test("logout ends the session and clears the cookie", async () => {
+  const res = await post({ email: "reception@test.test", password: "s3cret-pass" });
+  const token = res.headers.get("set-cookie")!.match(/^vcare_session=([^;]+)/)![1];
+  const out = await logout(new Request("http://localhost/api/auth/logout", { method: "POST", headers: { cookie: `vcare_session=${token}` } }), {});
+  expect(out.status).toBe(204);
+  expect(out.headers.get("set-cookie")).toMatch(/vcare_session=;/);
+  expect(await getStaffFromToken(db, token, new Date())).toBeNull();
 });
