@@ -18,3 +18,11 @@ export type BookingRequest = z.output<typeof bookingRequest>;
 export function parseBookingRequest(input: unknown): BookingRequest {
   return parseOrThrow(bookingRequest, input, "Invalid booking");
 }
+
+const travelUpdate = z.object({
+  travelMinutes: z.number({ error: "Pick a travel time from the list" }).int().nullable(),
+});
+
+export function parseTravelUpdate(input: unknown): z.output<typeof travelUpdate> {
+  return parseOrThrow(travelUpdate, input, "Invalid travel time");
+}

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { parseBookingRequest } from "@/domain/booking/request";
+import { parseBookingRequest, parseTravelUpdate } from "@/domain/booking/request";
 
 const ID = "6f1c1f3e-8a2b-4c3d-9e4f-5a6b7c8d9e0f";
 const valid = { sessionId: ID, scheduledAt: "2026-10-26T10:30:00+05:30", name: " Anita ", phone: "98765 43210", travelMinutes: 20 };
@@ -30,5 +30,16 @@ describe("parseBookingRequest", () => {
   ])("rejects %j", (input, hint) => {
     expect(() => parseBookingRequest(input)).toThrow(expect.objectContaining({ code: "VALIDATION" }));
     if (hint) expect(() => parseBookingRequest(input)).toThrow(new RegExp(hint, "i"));
+  });
+});
+
+describe("parseTravelUpdate", () => {
+  test("a number or null", () => {
+    expect(parseTravelUpdate({ travelMinutes: 30 })).toEqual({ travelMinutes: 30 });
+    expect(parseTravelUpdate({ travelMinutes: null })).toEqual({ travelMinutes: null });
+  });
+
+  test.each([{}, { travelMinutes: "30" }, null])("rejects %j", (input) => {
+    expect(() => parseTravelUpdate(input)).toThrow(expect.objectContaining({ code: "VALIDATION" }));
   });
 });
