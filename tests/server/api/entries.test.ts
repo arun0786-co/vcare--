@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { GET as getStatus } from "@/app/api/public/entries/[token]/route";
+import { GET as getStatus, PATCH as patchEntry } from "@/app/api/public/entries/[token]/route";
 import { addMinutes } from "@/domain/clock";
 import { clinicDateString } from "@/domain/time";
 import { createOnlineBooking } from "@/server/booking/create-booking";
@@ -34,5 +34,18 @@ describe("GET /api/public/entries/[token]", () => {
 
   test("unknown token is 404", async () => {
     expect((await getStatus(req(), params("z".repeat(32)))).status).toBe(404);
+  });
+});
+
+describe("PATCH /api/public/entries/[token]", () => {
+  test("sets the travel time and returns the new status", async () => {
+    const res = await patchEntry(req("PATCH", { travelMinutes: 30 }), params(token));
+    expect(res.status).toBe(200);
+    expect((await res.json()).travelMinutes).toBe(30);
+  });
+
+  test("odd travel time is 400, unknown token 404", async () => {
+    expect((await patchEntry(req("PATCH", { travelMinutes: 25 }), params(token))).status).toBe(400);
+    expect((await patchEntry(req("PATCH", { travelMinutes: 20 }), params("z".repeat(32)))).status).toBe(404);
   });
 });
