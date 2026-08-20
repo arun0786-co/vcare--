@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { POST as cancelEntry } from "@/app/api/public/entries/[token]/cancel/route";
 import { GET as getStatus, PATCH as patchEntry } from "@/app/api/public/entries/[token]/route";
+import { GET as streamEntry } from "@/app/api/public/entries/[token]/stream/route";
+import { closeRealtimeHub } from "@/server/realtime/hub";
 import { addMinutes } from "@/domain/clock";
 import { clinicDateString } from "@/domain/time";
 import { createOnlineBooking } from "@/server/booking/create-booking";
@@ -61,5 +63,20 @@ describe("POST /api/public/entries/[token]/cancel", () => {
 
   test("unknown token is 404", async () => {
     expect((await cancelEntry(req("POST"), params("z".repeat(32)))).status).toBe(404);
+  });
+});
+
+describe("GET /api/public/entries/[token]/stream", () => {
+  test("opens an event stream for the entry's session", async () => {
+    const abort = new AbortController();
+    const res = await streamEntry(new Request("http://localhost/s", { signal: abort.signal }), params(token));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toBe("text/event-stream");
+    abort.abort();
+    await closeRealtimeHub();
+  });
+
+  test("unknown token is 404", async () => {
+    expect((await streamEntry(req(), params("z".repeat(32)))).status).toBe(404);
   });
 });
