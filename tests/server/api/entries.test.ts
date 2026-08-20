@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
+import { POST as cancelEntry } from "@/app/api/public/entries/[token]/cancel/route";
 import { GET as getStatus, PATCH as patchEntry } from "@/app/api/public/entries/[token]/route";
 import { addMinutes } from "@/domain/clock";
 import { clinicDateString } from "@/domain/time";
@@ -47,5 +48,18 @@ describe("PATCH /api/public/entries/[token]", () => {
   test("odd travel time is 400, unknown token 404", async () => {
     expect((await patchEntry(req("PATCH", { travelMinutes: 25 }), params(token))).status).toBe(400);
     expect((await patchEntry(req("PATCH", { travelMinutes: 20 }), params("z".repeat(32)))).status).toBe(404);
+  });
+});
+
+describe("POST /api/public/entries/[token]/cancel", () => {
+  test("cancels and returns the status; a second cancel is 409", async () => {
+    const res = await cancelEntry(req("POST"), params(token));
+    expect(res.status).toBe(200);
+    expect((await res.json()).status).toBe("CANCELLED");
+    expect((await cancelEntry(req("POST"), params(token))).status).toBe(409);
+  });
+
+  test("unknown token is 404", async () => {
+    expect((await cancelEntry(req("POST"), params("z".repeat(32)))).status).toBe(404);
   });
 });
