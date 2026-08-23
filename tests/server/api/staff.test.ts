@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
+import { POST as postAction } from "@/app/api/staff/sessions/[id]/actions/route";
 import { GET as getBoard } from "@/app/api/staff/sessions/[id]/route";
 import { GET as listSessions } from "@/app/api/staff/sessions/route";
 import { addMinutes } from "@/domain/clock";
@@ -63,5 +64,39 @@ describe("GET /api/staff/sessions/[id]", () => {
     const otherCookie = `vcare_session=${await createStaffSession(db, other.staffId, new Date())}`;
     expect((await getBoard(req(`/api/staff/sessions/${id}`, { cookie: otherCookie }), params(id))).status).toBe(404);
     expect((await getBoard(req(`/api/staff/sessions/${id}`), params(id))).status).toBe(401);
+  });
+});
+
+describe("POST /api/staff/sessions/[id]/actions", () => {
+  const act = (id: string, body: unknown, c: string | undefined = cookie) =>
+    postAction(req(`/api/staff/sessions/${id}/actions`, { cookie: c, method: "POST", body }), params(id));
+
+  test("applies the action and returns the fresh board", async () => {
+    const id = await todaySession(seeded.doctorId);
+    const res = await act(id, { type: "ADD_WALK_IN", name: "Ravi" });
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.createdEntryId).toEqual(expect.any(String));
+    expect(json.board.waiting.map((e: { name: string }) => e.name)).toEqual(["Ravi"]);
+  });
+
+  test("a stale Next is 409 CONFLICT", async () => {
+    const id = await todaySession(seeded.doctorId);
+    await act(id, { type: "ADD_WALK_IN", name: "Ravi" });
+    await act(id, { type: "ADD_WALK_IN", name: "Meena" });
+    await act(id, { type: "NEXT", expectedCurrentId: null });
+    const stale = await act(id, { type: "NEXT", expectedCurrentId: null });
+    expect(stale.status).toBe(409);
+    expect((await stale.json()).error.code).toBe("CONFLICT");
+  });
+
+  test("401 without login, 404 for another clinic, 400 for nonsense", async () => {
+    const id = await todaySession(seeded.doctorId);
+    const other = await seedClinic("other");
+    const otherCookie = `vcare_session=${await createStaffSession(db, other.staffId, new Date())}`;
+    const noCookie = await postAction(req(`/api/staff/sessions/${id}/actions`, { method: "POST", body: { type: "DOCTOR_ARRIVED" } }), params(id));
+    expect(noCookie.status).toBe(401);
+    expect((await act(id, { type: "DOCTOR_ARRIVED" }, otherCookie)).status).toBe(404);
+    expect((await act(id, { type: "DANCE" })).status).toBe(400);
   });
 });
