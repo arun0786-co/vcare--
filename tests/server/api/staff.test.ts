@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { POST as postAction } from "@/app/api/staff/sessions/[id]/actions/route";
 import { GET as getBoard } from "@/app/api/staff/sessions/[id]/route";
+import { GET as streamSession } from "@/app/api/staff/sessions/[id]/stream/route";
+import { closeRealtimeHub } from "@/server/realtime/hub";
 import { GET as listSessions } from "@/app/api/staff/sessions/route";
 import { addMinutes } from "@/domain/clock";
 import { clinicDateString } from "@/domain/time";
@@ -98,5 +100,22 @@ describe("POST /api/staff/sessions/[id]/actions", () => {
     expect(noCookie.status).toBe(401);
     expect((await act(id, { type: "DOCTOR_ARRIVED" }, otherCookie)).status).toBe(404);
     expect((await act(id, { type: "DANCE" })).status).toBe(400);
+  });
+});
+
+describe("GET /api/staff/sessions/[id]/stream", () => {
+  test("opens a stream for the clinic's own session only", async () => {
+    const id = await todaySession(seeded.doctorId);
+    const abort = new AbortController();
+    const ok = await streamSession(new Request(`http://localhost/s`, { headers: { cookie }, signal: abort.signal }), params(id));
+    expect(ok.status).toBe(200);
+    expect(ok.headers.get("content-type")).toBe("text/event-stream");
+    abort.abort();
+    await closeRealtimeHub();
+
+    const other = await seedClinic("other");
+    const otherCookie = `vcare_session=${await createStaffSession(db, other.staffId, new Date())}`;
+    expect((await streamSession(req(`/api/staff/sessions/${id}/stream`, { cookie: otherCookie }), params(id))).status).toBe(404);
+    expect((await streamSession(req(`/api/staff/sessions/${id}/stream`), params(id))).status).toBe(401);
   });
 });
