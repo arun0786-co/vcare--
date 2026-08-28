@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { clinicDateString, formatClinicTime, stalenessLabel } from "@/domain/time";
+import { clinicDateString, clinicWallTime, formatClinicTime, stalenessLabel } from "@/domain/time";
 import { at } from "../support/time";
 
 describe("formatClinicTime", () => {
@@ -30,5 +30,14 @@ describe("stalenessLabel", () => {
 
   test("clock skew in the future reads as fresh", () => {
     expect(stalenessLabel(at("10:00"), plusSeconds(-5))).toEqual({ text: "Updated just now", stale: false });
+  });
+});
+
+describe("clinicWallTime", () => {
+  test("a clinic date and HH:MM become the right instant", () => {
+    expect(clinicWallTime("2026-10-26", "10:45", "Asia/Kolkata")).toEqual(new Date("2026-10-26T05:15:00Z"));
+    expect(clinicWallTime("2026-10-26", "00:10", "Asia/Kolkata")).toEqual(new Date("2026-10-25T18:40:00Z"));
+    expect(clinicWallTime("2026-07-01", "09:00", "America/New_York")).toEqual(new Date("2026-07-01T13:00:00Z"));
+    expect(clinicWallTime("2026-12-01", "09:00", "America/New_York")).toEqual(new Date("2026-12-01T14:00:00Z"));
   });
 });
