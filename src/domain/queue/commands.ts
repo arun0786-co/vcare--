@@ -30,6 +30,8 @@ export const staffActionSchema = z.discriminatedUnion("type", [
 ]);
 
 export type StaffAction = z.infer<typeof staffActionSchema>;
+// The JSON a client sends, before parsing (times as ISO strings).
+export type StaffActionInput = z.input<typeof staffActionSchema>;
 export type StaffActionType = StaffAction["type"];
 
 export function parseStaffAction(input: unknown): StaffAction {
