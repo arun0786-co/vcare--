@@ -37,6 +37,10 @@ test("groups entries and adds live estimates", async () => {
   expect(board.finished.map((e) => e.id)).toEqual([w3]);
   expect(board.stats).toEqual({ median: 8, p25: 6, samples: 0 });
   expect(board.generatedAt).toBe(at("10:30").toISOString());
+  // 10:30 onwards, minus the 11:00 booking.
+  expect(board.session.freeSlots[0]).toBe(at("10:30").toISOString());
+  expect(board.session.freeSlots).not.toContain(at("11:00").toISOString());
+  expect(board.session.freeSlots).toHaveLength(9);
 });
 
 test("closed sessions still load", async () => {

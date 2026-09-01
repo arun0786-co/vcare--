@@ -1,9 +1,11 @@
 import { QueueError } from "@/domain/errors";
 import { callableQueue, hasLostSlot } from "@/domain/queue/line";
 import type { Eta } from "@/domain/queue/types";
+import { freeSlots } from "@/domain/slots";
 import type { DbOrTx } from "../db/client";
 import { toView, type EntryRow } from "./entries";
 import { loadSession } from "./session-info";
+import { takenSlots } from "./slot-check";
 import { loadSnapshot } from "./snapshot";
 import type { BoardEntry, SessionBoard } from "./views";
 
@@ -37,6 +39,13 @@ export async function getSessionBoard(db: DbOrTx, sessionId: string, clinicId: s
   const booked = rows.filter((r) => r.status === "BOOKED");
   const lost = (r: EntryRow) => hasLostSlot(toView(r), now, session.graceMinutes);
   const current = rows.find((r) => r.status === "IN_CONSULTATION");
+  const slots = freeSlots({
+    startsAt: session.timing.startsAt,
+    endsAt: session.timing.endsAt,
+    slotMinutes: session.slotMinutes,
+    taken: await takenSlots(db, session.id),
+    now,
+  });
 
   return {
     session: {
@@ -52,6 +61,7 @@ export async function getSessionBoard(db: DbOrTx, sessionId: string, clinicId: s
       pauseReason: session.pauseReason,
       publicNote: session.publicNote,
       closedAt: iso(session.timing.closedAt),
+      freeSlots: session.timing.closedAt ? [] : slots.map((d) => d.toISOString()),
     },
     current: current ? entry(current) : null,
     waiting: callableQueue(views, session.graceMinutes).map((v) => entry(byId.get(v.id)!)),

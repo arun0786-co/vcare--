@@ -32,6 +32,7 @@ export interface SessionBoard {
     pauseReason: string | null;
     publicNote: string | null;
     closedAt: string | null;
+    freeSlots: string[];
   };
   current: BoardEntry | null;
   waiting: BoardEntry[];
