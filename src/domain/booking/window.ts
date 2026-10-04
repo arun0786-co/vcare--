@@ -15,3 +15,7 @@ export function isInBookingWindow(date: string, now: Date, timeZone: string): bo
   const { first, last } = bookingWindow(now, timeZone);
   return date >= first && date <= last;
 }
+
+export function bookingDates(now: Date, timeZone: string): string[] {
+  return Array.from({ length: BOOKING_DAYS }, (_, i) => clinicDateString(addMinutes(now, i * 24 * 60), timeZone));
+}
