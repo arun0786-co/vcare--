@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { clinicDateString, clinicWallTime, formatClinicTime, stalenessLabel } from "@/domain/time";
+import { clinicDateString, clinicWallTime, formatClinicTime, formatDayLabel, stalenessLabel } from "@/domain/time";
 import { at } from "../support/time";
 
 describe("formatClinicTime", () => {
@@ -39,5 +39,12 @@ describe("clinicWallTime", () => {
     expect(clinicWallTime("2026-10-26", "00:10", "Asia/Kolkata")).toEqual(new Date("2026-10-25T18:40:00Z"));
     expect(clinicWallTime("2026-07-01", "09:00", "America/New_York")).toEqual(new Date("2026-07-01T13:00:00Z"));
     expect(clinicWallTime("2026-12-01", "09:00", "America/New_York")).toEqual(new Date("2026-12-01T14:00:00Z"));
+  });
+});
+
+describe("formatDayLabel", () => {
+  test("short weekday, day and month for a calendar date", () => {
+    expect(formatDayLabel("2026-10-26")).toBe("Mon 26 Oct");
+    expect(formatDayLabel("2026-11-01")).toBe("Sun 1 Nov");
   });
 });

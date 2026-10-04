@@ -38,3 +38,11 @@ export function clinicWallTime(date: string, hhmm: string, timeZone: string): Da
   const guess = new Date(Date.UTC(y, m - 1, d, h, mi));
   return new Date(guess.getTime() - offsetMinutes(guess, timeZone) * 60_000);
 }
+
+// "2026-10-26" -> "Mon 26 Oct". The date is a calendar day, so read it in UTC to avoid shifting it.
+export function formatDayLabel(date: string): string {
+  const d = new Date(`${date}T12:00:00Z`);
+  const weekday = new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "UTC" }).format(d);
+  const dayMonth = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }).format(d);
+  return `${weekday} ${dayMonth}`;
+}
