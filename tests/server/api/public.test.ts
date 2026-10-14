@@ -31,7 +31,7 @@ describe("GET /api/public/clinics/[slug]", () => {
   test("clinic and doctors", async () => {
     const res = await getClinic(get("/api/public/clinics/demo"), params({ slug: "demo" }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ clinic: { name: "Clinic demo", slug: "demo" }, doctors: [{ id: seeded.doctorId, name: "Dr demo", specialty: null }] });
+    expect(await res.json()).toEqual({ clinic: { name: "Clinic demo", slug: "demo", timezone: "Asia/Kolkata" }, doctors: [{ id: seeded.doctorId, name: "Dr demo", specialty: null }] });
   });
 
   test("unknown clinic is 404", async () => {

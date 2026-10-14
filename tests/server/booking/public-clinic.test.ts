@@ -13,7 +13,7 @@ test("clinic name and its active doctors", async () => {
   const { clinicId, doctorId } = await seedClinic("demo");
   await db.insert(doctors).values({ clinicId, name: "Dr Away", active: false });
   expect(await getPublicClinic(db, "demo")).toEqual({
-    clinic: { name: "Clinic demo", slug: "demo" },
+    clinic: { name: "Clinic demo", slug: "demo", timezone: "Asia/Kolkata" },
     doctors: [{ id: doctorId, name: "Dr demo", specialty: null }],
   });
   expect((await db.select().from(doctors).where(eq(doctors.clinicId, clinicId))).length).toBe(2);

@@ -4,7 +4,7 @@ import type { Db } from "../db/client";
 import { clinics, doctors } from "../db/schema";
 
 export interface PublicClinic {
-  clinic: { name: string; slug: string };
+  clinic: { name: string; slug: string; timezone: string };
   doctors: { id: string; name: string; specialty: string | null }[];
 }
 
@@ -16,5 +16,5 @@ export async function getPublicClinic(db: Db, slug: string): Promise<PublicClini
     .from(doctors)
     .where(and(eq(doctors.clinicId, clinic.id), eq(doctors.active, true)))
     .orderBy(asc(doctors.name));
-  return { clinic: { name: clinic.name, slug: clinic.slug }, doctors: list };
+  return { clinic: { name: clinic.name, slug: clinic.slug, timezone: clinic.timezone }, doctors: list };
 }
