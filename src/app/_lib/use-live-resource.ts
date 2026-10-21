@@ -7,7 +7,8 @@ const POLL_MS = 60_000;
 const OFFLINE_AFTER_MS = 5_000;
 
 // Keeps a JSON resource fresh: refetches when the server says the queue changed,
-// after a reconnect, and every minute in case an event was missed.
+// whenever the stream (re)opens, and every minute in case an event was missed.
+// Refetching on open covers changes made between the page render and the stream connecting.
 export function useLiveResource<T>(url: string, streamUrl: string, initial: T) {
   const [data, setData] = useState(initial);
   const [connected, setConnected] = useState(true);
@@ -23,15 +24,12 @@ export function useLiveResource<T>(url: string, streamUrl: string, initial: T) {
   useEffect(() => {
     const source = new EventSource(streamUrl);
     let offlineTimer: ReturnType<typeof setTimeout> | undefined;
-    let dropped = false;
     source.onopen = () => {
       clearTimeout(offlineTimer);
       setConnected(true);
-      if (dropped) void refresh();
-      dropped = false;
+      void refresh();
     };
     source.onerror = () => {
-      dropped = true;
       clearTimeout(offlineTimer);
       offlineTimer = setTimeout(() => setConnected(false), OFFLINE_AFTER_MS);
     };
