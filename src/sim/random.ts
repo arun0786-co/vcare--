@@ -13,3 +13,11 @@ export function mulberry32(seed: number): () => number {
 export function randomInt(rng: () => number, min: number, max: number): number {
   return min + Math.floor(rng() * (max - min + 1));
 }
+
+// Box-Muller normal, then exp: right-skewed like real consultation lengths.
+export function lognormal(rng: () => number, median: number, sigma: number): number {
+  const u = 1 - rng();
+  const v = rng();
+  const z = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  return median * Math.exp(sigma * z);
+}
