@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VCare
 
-## Getting Started
+A live clinic queue. Patients book a slot (or are added by reception when they phone or walk in), follow their place in the queue from a link, and get a "leave now" message timed to their travel time, so they spend less time in the waiting room.
 
-First, run the development server:
+v0.1 is a prototype: messages are simulated, and there is no pilot clinic yet. See `docs/spec.md` for what it does and why, and `docs/sim-results.md` for how the estimates hold up in simulation.
+
+## Run it locally
+
+Needs Node 20.19+ and Docker (Docker Desktop or Colima).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env            # then set SEED_STAFF_PASSWORD
+npm run db:up                   # Postgres 17 on localhost:5433
+npm run db:migrate
+npm run seed                    # Demo Clinic with two doctors and two staff logins
+npm run dev                     # http://localhost:3000
+npm run worker                  # in a second terminal: plans and "sends" alerts every 15 s
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Page | What it is |
+| --- | --- |
+| `/c/demo` | Patient booking for the demo clinic |
+| `/q/<token>` | A patient's live status page (the link they get) |
+| `/login`, `/dashboard` | Reception and doctor screens (`reception@demo.test` or `meera@demo.test`, password from `.env`) |
+| `/dev/outbox` | Messages the app would have sent (development only) |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The demo doctors work Monday to Saturday, 10:00-13:00, and Dr. Meera Nair also 17:00-20:00. Running the queue (Next patient, check in, walk-ins) only works on the session's own day.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tests
 
-## Learn More
+```bash
+npm test            # everything (needs the database running)
+npm run test:unit   # domain logic, simulator and browser helpers, no database
+npm run test:int    # database, queue actions and API routes against vcare_test
+npm run simulate    # alerts vs no alerts over 50 synthetic mornings
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Layout
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/domain/     queue rules, estimates, alert planning, validation; pure functions, no I/O
+src/server/     Postgres access, queue actions (one handler per action), booking, auth, live updates, outbox
+src/app/        Next.js pages and API routes
+src/sim/        the simulator
+scripts/        migrate, seed, worker, simulate
+drizzle/        SQL migrations
+docs/           spec, build plan, simulator results
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Every queue change goes through `applyAction` (staff) or the booking functions (patients). Both lock the session row, record an event and publish a change that open pages pick up over server-sent events.
