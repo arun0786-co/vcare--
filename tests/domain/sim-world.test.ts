@@ -54,3 +54,16 @@ describe("doctor 45 minutes late, announced at 09:30", () => {
     expect(r.etaMaeMinutes).toBe(2);
   });
 });
+
+test("an overrunning morning plays out until every patient is seen", () => {
+  // 40 walk-ins of 10 minutes from 09:45 push the 12:30 booking past 16:00.
+  const crowd: SimPatients = {
+    walkIns: Array.from({ length: 40 }, (_, i) => ({ id: `w${i}`, arrival: at("09:45"), duration: 10 })),
+    booked: [{ id: "b1", slot: at("12:30"), travel: 30, actualTravel: 30, duration: 10 }],
+  };
+  for (const world of ["alerts", "baseline"] as const) {
+    const r = runWorld(crowd, { ...DEFAULT_SIM, doctorLateMinutes: 30, lateAnnounced: true }, world);
+    expect(r.details[0].start! > at("16:00")).toBe(true);
+    expect(r.lostSlots).toBe(0);
+  }
+});

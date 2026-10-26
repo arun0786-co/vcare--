@@ -10,7 +10,8 @@ import { SIM_SESSION, type SimBookedResult, type SimOptions, type SimPatients, t
 export type World = "alerts" | "baseline";
 
 const SIM_START = addMinutes(SIM_SESSION.startsAt, -60);
-const SIM_END = addMinutes(SIM_SESSION.endsAt, 180);
+// Busy mornings overrun; keep going until everyone is seen, with a 12-hour cap.
+const SIM_CAP = addMinutes(SIM_START, 12 * 60);
 const ANNOUNCE_AT = addMinutes(SIM_SESSION.startsAt, -30);
 // Without alerts, people aim to be there a few minutes before their slot.
 const BASELINE_EARLY_MINUTES = 5;
@@ -61,7 +62,12 @@ export function runWorld(patients: SimPatients, opts: SimOptions, world: World):
   }
   for (const w of patients.walkIns) durationOf.set(w.id, w.duration);
 
-  for (let now = SIM_START; now <= SIM_END; now = addMinutes(now, 1)) {
+  const lastWalkIn = patients.walkIns.reduce((t, w) => (w.arrival > t ? w.arrival : t), SIM_START);
+  const finished = (now: Date) =>
+    now > lastWalkIn &&
+    [...entries.values()].every((e) => e.status === "COMPLETED" || e.status === "NO_SHOW" || e.status === "CANCELLED");
+
+  for (let now = SIM_START; now <= SIM_CAP && !finished(now); now = addMinutes(now, 1)) {
     if (opts.lateAnnounced && opts.doctorLateMinutes > 0 && now >= ANNOUNCE_AT && !timing.doctorArrivedAt) {
       timing.expectedStartAt = doctorArrives;
     }
