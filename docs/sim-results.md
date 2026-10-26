@@ -1,6 +1,6 @@
 # Simulator results
 
-Run on 2026-10-26 with `npm run simulate` (commit `45794e7`). There is no pilot clinic yet, so these numbers come from synthetic mornings, not real patients.
+Run on 2026-10-26 with `npm run simulate` (commit `bafc318`). There is no pilot clinic yet, so these numbers come from synthetic mornings, not real patients.
 
 ## Setup
 
